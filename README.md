@@ -1,5 +1,6 @@
 # TicTacToeAI
 _This repository will not be translated into other languages_
+
 Sim, ele fez denovo, ele é incansável!! Ele ~~perdeu tempo~~ ajudou a feira do conhecimento da escola dele!!
 
 ## Do que se trata?
