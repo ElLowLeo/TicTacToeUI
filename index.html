@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Jogo da Velha</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        transition: ease 2s;
+      }
+
+      h1 {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 2px;
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 20px auto;
+        max-width: 300px;
+      }
+
+      .cell {
+        width: 100%;
+        padding: 0;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        cursor: pointer;
+        background-color: #ddd;
+        border: 1px solid #ccc;
+        color: #444;
+        transition: background-color 0.3s ease;
+      }
+
+      .cell:hover {
+        background-color: #ccc;
+      }
+
+      h2 {
+        color: #bb86fc;
+        text-align: center;
+      }
+
+      #resetButton {
+        display: block;
+        margin: 0 auto;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      #resetButton:hover {
+        background-color: #45a049;
+      }
+
+      .cell[data-player="X"] {
+        color: #a7171a;
+      }
+
+      .cell[data-player="O"] {
+        color: #03045e;
+      }
+
+      .switch-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .switch {
+        display: none;
+      }
+
+      .switch-label {
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+        background-color: #ccc;
+        border-radius: 15px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .switch-label:before {
+        content: "";
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        background-color: white;
+        transition: transform 0.3s ease;
+      }
+
+      .switch:checked + .switch-label {
+        background-color: #4caf50;
+      }
+
+      .switch:checked + .switch-label:before {
+        transform: translateX(30px);
+      }
+      
+      a {
+        color: #bb86fc;
+        text-decoration: none;
+      }
+      
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Jogo da Velha Invencível</h1>
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <h2></h2>
+    <button id="resetButton">Resetar</button>
+    <div class="switch-container">
+      <input type="checkbox" id="mode-switch" class="switch" /><label
+        for="mode-switch"
+        class="switch-label"
+      ></label>
+    </div>
+    <center><p>Código Fonte: <a href>TicTacToeUI</a></p></center>
+    <script>
+      const board = document.getElementById("board");
+      resetButton.addEventListener("click", resetBoard);
+      const cells = document.querySelectorAll(".cell");
+      let currentPlayer = "X";
+      let userCanPlay = true;
+
+      board.addEventListener("click", (e) => {
+        const cell = e.target;
+        const index = cell.getAttribute("data-index");
+        cell.setAttribute("data-player", currentPlayer);
+
+        if (!cell.textContent && userCanPlay) {
+          cell.textContent = currentPlayer;
+          if ([...cells].every((cell) => cell.textContent)) {
+            document.getElementsByTagName("h2")[0].textContent = "Empate!";
+          }
+          if (checkWin(currentPlayer)) {
+            document.getElementsByTagName(
+              "h2"
+            )[0].textContent = `Jogador ${currentPlayer} ganhou!`;
+            userCanPlay = false;
+            return;
+          }
+          currentPlayer = currentPlayer === "X" ? "O" : "X";
+          if (currentPlayer === "O") {
+            const bestMove = getBestMove();
+            cells[bestMove].textContent = currentPlayer;
+            cells[bestMove].setAttribute("data-player", currentPlayer);
+            if (checkWin(currentPlayer)) {
+              document.getElementsByTagName(
+                "h2"
+              )[0].textContent = `Jogador ${currentPlayer} ganhou!`;
+              userCanPlay = false;
+              return;
+            }
+            currentPlayer = "X";
+          }
+        }
+      });
+
+      function checkWin(player) {
+        const winningCombos = [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8],
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8],
+          [0, 4, 8],
+          [2, 4, 6],
+        ];
+
+        for (const combo of winningCombos) {
+          if (
+            cells[combo[0]].textContent === player &&
+            cells[combo[1]].textContent === player &&
+            cells[combo[2]].textContent === player
+          ) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      function getBestMove() {
+        const emptyCells = [...cells].filter((cell) => !cell.textContent);
+        let bestScore = -Infinity;
+        let bestMove;
+
+        emptyCells.forEach((cell) => {
+          cell.textContent = "O";
+          const score = minimax(cells, 0, false);
+          cell.textContent = "";
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = cell.getAttribute("data-index");
+          }
+        });
+
+        return bestMove;
+      }
+
+      function minimax(boardState, depth, alpha, beta, isMaximizing) {
+        const scores = {
+          X: -10,
+          O: 10,
+          tie: 0,
+        };
+
+        if (checkWin("X")) {
+          return scores.X - depth;
+        }
+        if (checkWin("O")) {
+          return scores.O - depth;
+        }
+        if ([...boardState].every((cell) => cell.textContent)) {
+          return scores.tie;
+        }
+
+        if (isMaximizing) {
+          let bestScore = -Infinity;
+          boardState.forEach((cell, index) => {
+            if (!cell.textContent) {
+              cell.textContent = "O";
+              const score = minimax(boardState, depth + 1, alpha, beta, false);
+              cell.textContent = "";
+              bestScore = Math.max(score, bestScore);
+              alpha = Math.max(alpha, bestScore);
+              if (beta <= alpha) {
+                return;
+              }
+            }
+          });
+          return bestScore;
+        } else {
+          let bestScore = Infinity;
+          boardState.forEach((cell, index) => {
+            if (!cell.textContent) {
+              cell.textContent = "X";
+              const score = minimax(boardState, depth + 1, alpha, beta, true);
+              cell.textContent = "";
+              bestScore = Math.min(score, bestScore);
+              beta = Math.min(beta, bestScore);
+              if (beta <= alpha) {
+                return;
+              }
+            }
+          });
+          return bestScore;
+        }
+      }
+
+      const modeSwitch = document.getElementById("mode-switch");
+      const themeLink = document.getElementById("theme");
+
+      modeSwitch.addEventListener("change", () => {
+        // Yeah, this is from gcemu
+        if (modeSwitch.checked) {
+          document.body.style.backgroundColor = "#1a1a1a";
+          document.body.style.color = "#ffffff";
+          localStorage.setItem("mode", "dark");
+        } else {
+          document.body.style.backgroundColor = "#ffffff";
+          document.body.style.color = "#000000";
+          localStorage.setItem("mode", "light");
+        }
+      });
+
+      const savedMode = localStorage.getItem("mode");
+      if (savedMode === "light") {
+        modeSwitch.checked = false;
+        document.body.style.backgroundColor = "#ffffff";
+        document.body.style.color = "#000000";
+      } else {
+        modeSwitch.checked = true;
+        document.body.style.backgroundColor = "#1a1a1a";
+        document.body.style.color = "#ffffff";
+      }
+
+      function resetBoard() {
+        currentPlayer = "X";
+        userCanPlay = true;
+        cells.forEach((cell) => (cell.textContent = ""));
+        document.getElementsByTagName("h2")[0].textContent = "";
+      }
+    </script>
+  </body>
+</html>
